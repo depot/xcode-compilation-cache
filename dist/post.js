@@ -19631,10 +19631,12 @@ async function run() {
     endGroup();
   }
   const missed = stats.missed_keys ?? [];
-  if (debug2 && missed.length > 0) {
-    startGroup(`Missed keys (${missed.length}): search the build log for a key to find its file`);
-    for (const key of missed) info(key);
-    endGroup();
+  if (debug2) {
+    if (missed.length > 0) {
+      startGroup(`Missed keys (${missed.length}): search the build log for a key to find its file`);
+      for (const key of missed) info(key);
+      endGroup();
+    }
   } else if (stats.key_misses > 0) {
     info("Set the debug input to list the missed keys and log the file each belongs to");
   }

@@ -81,10 +81,12 @@ async function run() {
   }
   // Keys only name files in the build log's remarks, which debug enables.
   const missed = stats.missed_keys ?? []
-  if (debug && missed.length > 0) {
-    core.startGroup(`Missed keys (${missed.length}): search the build log for a key to find its file`)
-    for (const key of missed) core.info(key)
-    core.endGroup()
+  if (debug) {
+    if (missed.length > 0) {
+      core.startGroup(`Missed keys (${missed.length}): search the build log for a key to find its file`)
+      for (const key of missed) core.info(key)
+      core.endGroup()
+    }
   } else if (stats.key_misses > 0) {
     core.info('Set the debug input to list the missed keys and log the file each belongs to')
   }
