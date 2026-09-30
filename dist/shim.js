@@ -147,6 +147,7 @@ function generateXcconfig(opts) {
     lines.push("SWIFT_ENABLE_EXPLICIT_MODULES = NO");
     lines.push("COMPILATION_CACHE_REMOTE_SUPPORTED_LANGUAGES = c c++ objective-c objective-c++");
   }
+  if (opts.remarks) lines.push("COMPILATION_CACHE_ENABLE_DIAGNOSTIC_REMARKS = YES");
   return lines.join("\n") + "\n";
 }
 function quoteListItem(item) {
@@ -185,7 +186,8 @@ function plan(argv) {
     depotXcconfig,
     userXcconfig: invocation.xcconfig,
     mappings: derivedDataMappings(invocation.derivedDataPath),
-    swift: !isDisabled(process.env.DEPOT_XCODE_CACHE_SWIFT)
+    swift: !isDisabled(process.env.DEPOT_XCODE_CACHE_SWIFT),
+    remarks: debug
   });
   return { args: [...invocation.args, "-xcconfig", writeXcconfig(xcconfig)] };
 }

@@ -153,6 +153,8 @@ export interface XcconfigOptions {
   mappings: string[]
   /** Whether to cache Swift compilation. */
   swift: boolean
+  /** Whether the compilers log each cache hit and miss, with its key. */
+  remarks?: boolean
 }
 
 /**
@@ -176,6 +178,8 @@ export function generateXcconfig(opts: XcconfigOptions): string {
     lines.push('SWIFT_ENABLE_EXPLICIT_MODULES = NO')
     lines.push('COMPILATION_CACHE_REMOTE_SUPPORTED_LANGUAGES = c c++ objective-c objective-c++')
   }
+
+  if (opts.remarks) lines.push('COMPILATION_CACHE_ENABLE_DIAGNOSTIC_REMARKS = YES')
 
   return lines.join('\n') + '\n'
 }

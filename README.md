@@ -38,6 +38,12 @@ The action puts an `xcodebuild` wrapper on `PATH` for the rest of the job. For b
 - Build settings passed on the command line, such as `SWIFT_ENABLE_EXPLICIT_MODULES=NO`, do not override Depot's settings, because xcconfig files take precedence over them. Use your own `-xcconfig`, the `swift` input or `DEPOT_XCODE_CACHE=0` instead.
 - Cache keys do not include the paths of Xcode, the SDK, the repository or DerivedData, so builds hit the cache across runners. If the repository is checked out under a symlink, keep the resolved path the same between runs, or builds miss the cache.
 
+## Cache summary
+
+At the end of the job, the action logs the cache's hits, misses and hit rate, and adds them to the job summary. It counts the compilations looked up in Depot Cache. A compilation that hits Xcode's local cache, such as when a job runs `xcodebuild` twice, is not looked up and not counted.
+
+With `debug: true`, the compilers log each cache hit and miss in the build log, with its key, and the summary lists the keys that missed. Search the build log for a missed key to find the file it belongs to. Cache errors are always listed.
+
 ## Disabling the cache
 
 Set `DEPOT_XCODE_CACHE=0` to run `xcodebuild` unchanged, for a whole job or a single step:
