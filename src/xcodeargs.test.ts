@@ -96,6 +96,12 @@ test('generateXcconfig without Swift caching', () => {
   assert.doesNotMatch(xcconfig, /PREFIX_MAPPINGS/)
 })
 
+test('generateXcconfig with remarks', () => {
+  const xcconfig = generateXcconfig({depotXcconfig: '/depot.xcconfig', mappings: [], swift: true, remarks: true})
+  assert.match(xcconfig, /^COMPILATION_CACHE_ENABLE_DIAGNOSTIC_REMARKS = YES$/m)
+  assert.doesNotMatch(generateXcconfig({depotXcconfig: '/depot.xcconfig', mappings: [], swift: true}), /REMARKS/)
+})
+
 test('remoteServicePath', () => {
   assert.equal(
     remoteServicePath('A = B\nCOMPILATION_CACHE_REMOTE_SERVICE_PATH = /var/run/depot-xcode-cache.sock\n'),

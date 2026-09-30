@@ -48,6 +48,7 @@ function plan(argv: string[]): {args: string[]; skipped?: string} {
     userXcconfig: invocation.xcconfig,
     mappings: derivedDataMappings(invocation.derivedDataPath),
     swift: !isDisabled(process.env.DEPOT_XCODE_CACHE_SWIFT),
+    remarks: debug,
   })
   return {args: [...invocation.args, '-xcconfig', writeXcconfig(xcconfig)]}
 }
