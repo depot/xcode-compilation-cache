@@ -1,6 +1,8 @@
-# xcode-compilation-cache
+# xcode-compilation-cache (BETA)
 
 Cache Xcode compilation in Depot Cache on Depot macOS runners. Compiler outputs are shared between runs, so unchanged sources are not compiled again.
+
+Requires Xcode 26 or later.
 
 > The action wraps `xcodebuild`, so builds need no changes. This includes `xcodebuild` run by other tools, such as fastlane.
 
@@ -33,7 +35,8 @@ The action puts an `xcodebuild` wrapper on `PATH` for the rest of the job. For b
 
 - If you pass your own `-xcconfig`, it is included after Depot's settings, so your settings win.
 - Settings in `XCODE_XCCONFIG_FILE` take precedence over both, so avoid setting compilation cache settings there.
-- Cache keys do not depend on where the repository or DerivedData is, so builds hit the cache across runners.
+- Build settings passed on the command line, such as `SWIFT_ENABLE_EXPLICIT_MODULES=NO`, do not override Depot's settings, because xcconfig files take precedence over them. Use your own `-xcconfig`, the `swift` input or `DEPOT_XCODE_CACHE=0` instead.
+- Cache keys do not include the paths of Xcode, the SDK, the repository or DerivedData, so builds hit the cache across runners. If the repository is checked out under a symlink, keep the resolved path the same between runs, or builds miss the cache.
 
 ## Disabling the cache
 
@@ -47,4 +50,4 @@ Set `DEPOT_XCODE_CACHE=0` to run `xcodebuild` unchanged, for a whole job or a si
 ```
 
 > [!IMPORTANT]
-Tools that run `/usr/bin/xcodebuild` by its full path bypass the wrapper and do not use the cache.
+Tools that run `/usr/bin/xcodebuild` by its full path, or run it through `xcrun xcodebuild`, bypass the wrapper and do not use the cache.

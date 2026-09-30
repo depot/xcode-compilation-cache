@@ -85,9 +85,14 @@ function main() {
   }
 
   const child = spawn(XCODEBUILD, args, {stdio: 'inherit', env: {...process.env, [ACTIVE]: '1'}})
-  for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP'] as const) {
-    process.on(signal, () => child.kill(signal))
-  }
+  // SIGINT and SIGHUP come from the terminal or are sent to the process
+  // group, which includes xcodebuild. Forwarding them would deliver them
+  // twice, and a second SIGINT can stop xcodebuild before it cleans up. The
+  // shim ignores them and exits with xcodebuild. SIGTERM is often sent to a
+  // single process, so it is forwarded.
+  process.on('SIGINT', () => {})
+  process.on('SIGHUP', () => {})
+  process.on('SIGTERM', () => child.kill('SIGTERM'))
   child.on('error', (err) => {
     log(`unable to run ${XCODEBUILD}: ${err.message}`)
     process.exit(127)

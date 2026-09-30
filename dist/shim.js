@@ -217,9 +217,11 @@ function main() {
     args = argv;
   }
   const child = (0, import_node_child_process.spawn)(XCODEBUILD, args, { stdio: "inherit", env: { ...process.env, [ACTIVE]: "1" } });
-  for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
-    process.on(signal, () => child.kill(signal));
-  }
+  process.on("SIGINT", () => {
+  });
+  process.on("SIGHUP", () => {
+  });
+  process.on("SIGTERM", () => child.kill("SIGTERM"));
   child.on("error", (err) => {
     log(`unable to run ${XCODEBUILD}: ${err.message}`);
     process.exit(127);
