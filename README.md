@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: depot-macos-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: depot/xcode-compilation-cache@v1
 
       - name: Build
@@ -24,7 +24,7 @@ jobs:
 
 | Input   | Required | Default | Description                                                                                                                    |
 | ------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `swift` | No       | `true`  | Cache Swift compilation. Swift caching requires explicit modules; set to `false` for projects that cannot build with them. |
+| `swift` | No       | `true`  | Cache Swift compilation. Swift caching requires explicit modules. Set to `false` for projects that cannot build with them. |
 | `debug` | No       | `false` | Enable verbose logging                                                                                                         |
 
 ## How it works
@@ -46,4 +46,5 @@ Set `DEPOT_XCODE_CACHE=0` to run `xcodebuild` unchanged, for a whole job or a si
     DEPOT_XCODE_CACHE: 0
 ```
 
+> [!IMPORTANT]
 Tools that run `/usr/bin/xcodebuild` by its full path bypass the wrapper and do not use the cache.
