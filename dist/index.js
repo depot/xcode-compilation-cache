@@ -19582,12 +19582,12 @@ async function run() {
   const swift = getBooleanInput("swift");
   const debug2 = getBooleanInput("debug");
   if (process.platform !== "darwin") {
-    notice("The Xcode compilation cache is only available on macOS; xcodebuild runs unchanged");
+    notice("The Xcode compilation cache is only available on macOS: xcodebuild runs unchanged");
     return;
   }
   const depotXcconfig = process.env.DEPOT_XCODE_CACHE_XCCONFIG;
   if (!depotXcconfig || !fs3.existsSync(depotXcconfig)) {
-    notice("The Xcode compilation cache is not available on this runner; xcodebuild runs unchanged");
+    notice("The Xcode compilation cache is not available on this runner: xcodebuild runs unchanged");
     return;
   }
   const socket = remoteServicePath(fs3.readFileSync(depotXcconfig, "utf8"));

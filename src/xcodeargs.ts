@@ -44,7 +44,7 @@ const QUERY_FLAGS = new Set([
 ])
 
 /**
- * Reports whether argv compiles. An explicit build action wins; otherwise
+ * Reports whether argv compiles. An explicit build action wins, otherwise
  * xcodebuild builds unless a query flag is present, since `build` is its
  * default action.
  */
