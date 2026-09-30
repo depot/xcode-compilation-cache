@@ -1,0 +1,21 @@
+name: Depot Xcode compilation cache
+description: Cache Xcode (26+) compilation in Depot Cache by wrapping xcodebuild on Depot macOS runners
+author: Depot
+branding:
+  icon: package
+  color: gray-dark
+runs:
+  using: node24
+  main: dist/index.js
+inputs:
+  swift:
+    description: |-
+      Cache Swift compilation. Swift caching requires explicit modules, which some projects cannot build with.
+      Set to false to cache only C, C++ and Objective-C.
+    default: true
+    required: false
+  debug:
+    description: |-
+      Enables detailed logging.
+    default: false
+    required: false
