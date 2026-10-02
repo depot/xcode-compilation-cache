@@ -1,7 +1,7 @@
 const esbuild = require('esbuild')
 
 esbuild.build({
-  entryPoints: ['src/index.ts', 'src/post.ts', 'src/shim.ts'],
+  entryPoints: ['src/index.ts', 'src/post.ts'],
   bundle: true,
   minify: false,
   platform: 'node',

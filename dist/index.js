@@ -1064,14 +1064,14 @@ var require_util = __commonJS({
         }
         const port = url.port != null ? url.port : url.protocol === "https:" ? 443 : 80;
         let origin = url.origin != null ? url.origin : `${url.protocol || ""}//${url.hostname || ""}:${port}`;
-        let path3 = url.path != null ? url.path : `${url.pathname || ""}${url.search || ""}`;
+        let path = url.path != null ? url.path : `${url.pathname || ""}${url.search || ""}`;
         if (origin[origin.length - 1] === "/") {
           origin = origin.slice(0, origin.length - 1);
         }
-        if (path3 && path3[0] !== "/") {
-          path3 = `/${path3}`;
+        if (path && path[0] !== "/") {
+          path = `/${path}`;
         }
-        return new URL(`${origin}${path3}`);
+        return new URL(`${origin}${path}`);
       }
       if (!isHttpOrHttpsPrefixed(url.origin || url.protocol)) {
         throw new InvalidArgumentError("Invalid URL protocol: the URL must start with `http:` or `https:`.");
@@ -1522,39 +1522,39 @@ var require_diagnostics = __commonJS({
       });
       diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
         const {
-          request: { method, path: path3, origin }
+          request: { method, path, origin }
         } = evt;
-        debuglog("sending request to %s %s/%s", method, origin, path3);
+        debuglog("sending request to %s %s/%s", method, origin, path);
       });
       diagnosticsChannel.channel("undici:request:headers").subscribe((evt) => {
         const {
-          request: { method, path: path3, origin },
+          request: { method, path, origin },
           response: { statusCode }
         } = evt;
         debuglog(
           "received response to %s %s/%s - HTTP %d",
           method,
           origin,
-          path3,
+          path,
           statusCode
         );
       });
       diagnosticsChannel.channel("undici:request:trailers").subscribe((evt) => {
         const {
-          request: { method, path: path3, origin }
+          request: { method, path, origin }
         } = evt;
-        debuglog("trailers received from %s %s/%s", method, origin, path3);
+        debuglog("trailers received from %s %s/%s", method, origin, path);
       });
       diagnosticsChannel.channel("undici:request:error").subscribe((evt) => {
         const {
-          request: { method, path: path3, origin },
+          request: { method, path, origin },
           error
         } = evt;
         debuglog(
           "request to %s %s/%s errored - %s",
           method,
           origin,
-          path3,
+          path,
           error.message
         );
       });
@@ -1603,9 +1603,9 @@ var require_diagnostics = __commonJS({
         });
         diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
           const {
-            request: { method, path: path3, origin }
+            request: { method, path, origin }
           } = evt;
-          debuglog("sending request to %s %s/%s", method, origin, path3);
+          debuglog("sending request to %s %s/%s", method, origin, path);
         });
       }
       diagnosticsChannel.channel("undici:websocket:open").subscribe((evt) => {
@@ -1668,7 +1668,7 @@ var require_request = __commonJS({
     var kHandler = Symbol("handler");
     var Request = class {
       constructor(origin, {
-        path: path3,
+        path,
         method,
         body,
         headers,
@@ -1683,11 +1683,11 @@ var require_request = __commonJS({
         expectContinue,
         servername
       }, handler) {
-        if (typeof path3 !== "string") {
+        if (typeof path !== "string") {
           throw new InvalidArgumentError("path must be a string");
-        } else if (path3[0] !== "/" && !(path3.startsWith("http://") || path3.startsWith("https://")) && method !== "CONNECT") {
+        } else if (path[0] !== "/" && !(path.startsWith("http://") || path.startsWith("https://")) && method !== "CONNECT") {
           throw new InvalidArgumentError("path must be an absolute URL or start with a slash");
-        } else if (invalidPathRegex.test(path3)) {
+        } else if (invalidPathRegex.test(path)) {
           throw new InvalidArgumentError("invalid request path");
         }
         if (typeof method !== "string") {
@@ -1753,7 +1753,7 @@ var require_request = __commonJS({
         this.completed = false;
         this.aborted = false;
         this.upgrade = upgrade || null;
-        this.path = query ? buildURL(path3, query) : path3;
+        this.path = query ? buildURL(path, query) : path;
         this.origin = origin;
         this.idempotent = idempotent == null ? method === "HEAD" || method === "GET" : idempotent;
         this.blocking = blocking == null ? false : blocking;
@@ -4069,11 +4069,11 @@ var require_util2 = __commonJS({
     var { isUint8Array } = require("node:util/types");
     var { webidl } = require_webidl();
     var supportedHashes = [];
-    var crypto2;
+    var crypto;
     try {
-      crypto2 = require("node:crypto");
+      crypto = require("node:crypto");
       const possibleRelevantHashes = ["sha256", "sha384", "sha512"];
-      supportedHashes = crypto2.getHashes().filter((hash) => possibleRelevantHashes.includes(hash));
+      supportedHashes = crypto.getHashes().filter((hash) => possibleRelevantHashes.includes(hash));
     } catch {
     }
     function responseURL(response) {
@@ -4346,7 +4346,7 @@ var require_util2 = __commonJS({
       }
     }
     function bytesMatch(bytes, metadataList) {
-      if (crypto2 === void 0) {
+      if (crypto === void 0) {
         return true;
       }
       const parsedMetadata = parseMetadata(metadataList);
@@ -4361,7 +4361,7 @@ var require_util2 = __commonJS({
       for (const item of metadata) {
         const algorithm = item.algo;
         const expectedValue = item.hash;
-        let actualValue = crypto2.createHash(algorithm).update(bytes).digest("base64");
+        let actualValue = crypto.createHash(algorithm).update(bytes).digest("base64");
         if (actualValue[actualValue.length - 1] === "=") {
           if (actualValue[actualValue.length - 2] === "=") {
             actualValue = actualValue.slice(0, -2);
@@ -5425,8 +5425,8 @@ var require_body = __commonJS({
     var { multipartFormDataParser } = require_formdata_parser();
     var random;
     try {
-      const crypto2 = require("node:crypto");
-      random = (max) => crypto2.randomInt(0, max);
+      const crypto = require("node:crypto");
+      random = (max) => crypto.randomInt(0, max);
     } catch {
       random = (max) => Math.floor(Math.random(max));
     }
@@ -6439,7 +6439,7 @@ var require_client_h1 = __commonJS({
       return method !== "GET" && method !== "HEAD" && method !== "OPTIONS" && method !== "TRACE" && method !== "CONNECT";
     }
     function writeH1(client, request) {
-      const { method, path: path3, host, upgrade, blocking, reset } = request;
+      const { method, path, host, upgrade, blocking, reset } = request;
       let { body, headers, contentLength } = request;
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH" || method === "QUERY" || method === "PROPFIND" || method === "PROPPATCH";
       if (util.isFormDataLike(body)) {
@@ -6520,7 +6520,7 @@ var require_client_h1 = __commonJS({
       if (blocking) {
         socket[kBlocking] = true;
       }
-      let header = `${method} ${path3} HTTP/1.1\r
+      let header = `${method} ${path} HTTP/1.1\r
 `;
       if (typeof host === "string") {
         header += `host: ${host}\r
@@ -7051,7 +7051,7 @@ var require_client_h2 = __commonJS({
     }
     function writeH2(client, request) {
       const session = client[kHTTP2Session];
-      const { method, path: path3, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
+      const { method, path, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
       let { body } = request;
       if (upgrade) {
         util.errorRequest(client, request, new Error("Upgrade not supported for H2"));
@@ -7148,7 +7148,7 @@ var require_client_h2 = __commonJS({
         });
         return true;
       }
-      headers[HTTP2_HEADER_PATH] = path3;
+      headers[HTTP2_HEADER_PATH] = path;
       headers[HTTP2_HEADER_SCHEME] = "https";
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH";
       if (body && typeof body.read === "function") {
@@ -7501,9 +7501,9 @@ var require_redirect_handler = __commonJS({
           return this.handler.onHeaders(statusCode, headers, resume, statusText);
         }
         const { origin, pathname, search } = util.parseURL(new URL(this.location, this.opts.origin && new URL(this.opts.path, this.opts.origin)));
-        const path3 = search ? `${pathname}${search}` : pathname;
+        const path = search ? `${pathname}${search}` : pathname;
         this.opts.headers = cleanRequestHeaders(this.opts.headers, statusCode === 303, this.opts.origin !== origin);
-        this.opts.path = path3;
+        this.opts.path = path;
         this.opts.origin = origin;
         this.opts.maxRedirections = 0;
         this.opts.query = null;
@@ -8738,10 +8738,10 @@ var require_proxy_agent = __commonJS({
         };
         const {
           origin,
-          path: path3 = "/",
+          path = "/",
           headers = {}
         } = opts;
-        opts.path = origin + path3;
+        opts.path = origin + path;
         if (!("host" in headers) && !("Host" in headers)) {
           const { host } = new URL2(origin);
           headers.host = host;
@@ -10713,20 +10713,20 @@ var require_mock_utils = __commonJS({
       }
       return true;
     }
-    function safeUrl(path3) {
-      if (typeof path3 !== "string") {
-        return path3;
+    function safeUrl(path) {
+      if (typeof path !== "string") {
+        return path;
       }
-      const pathSegments = path3.split("?");
+      const pathSegments = path.split("?");
       if (pathSegments.length !== 2) {
-        return path3;
+        return path;
       }
       const qp = new URLSearchParams(pathSegments.pop());
       qp.sort();
       return [...pathSegments, qp.toString()].join("?");
     }
-    function matchKey(mockDispatch2, { path: path3, method, body, headers }) {
-      const pathMatch = matchValue(mockDispatch2.path, path3);
+    function matchKey(mockDispatch2, { path, method, body, headers }) {
+      const pathMatch = matchValue(mockDispatch2.path, path);
       const methodMatch = matchValue(mockDispatch2.method, method);
       const bodyMatch = typeof mockDispatch2.body !== "undefined" ? matchValue(mockDispatch2.body, body) : true;
       const headersMatch = matchHeaders(mockDispatch2, headers);
@@ -10748,7 +10748,7 @@ var require_mock_utils = __commonJS({
     function getMockDispatch(mockDispatches, key) {
       const basePath = key.query ? buildURL(key.path, key.query) : key.path;
       const resolvedPath = typeof basePath === "string" ? safeUrl(basePath) : basePath;
-      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path3 }) => matchValue(safeUrl(path3), resolvedPath));
+      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path }) => matchValue(safeUrl(path), resolvedPath));
       if (matchedMockDispatches.length === 0) {
         throw new MockNotMatchedError(`Mock dispatch not matched for path '${resolvedPath}'`);
       }
@@ -10786,9 +10786,9 @@ var require_mock_utils = __commonJS({
       }
     }
     function buildKey(opts) {
-      const { path: path3, method, body, headers, query } = opts;
+      const { path, method, body, headers, query } = opts;
       return {
-        path: path3,
+        path,
         method,
         body,
         headers,
@@ -11251,10 +11251,10 @@ var require_pending_interceptors_formatter = __commonJS({
       }
       format(pendingInterceptors) {
         const withPrettyHeaders = pendingInterceptors.map(
-          ({ method, path: path3, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
+          ({ method, path, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
             Method: method,
             Origin: origin,
-            Path: path3,
+            Path: path,
             "Status code": statusCode,
             Persistent: persist ? PERSISTENT : NOT_PERSISTENT,
             Invocations: timesInvoked,
@@ -12017,10 +12017,10 @@ var require_headers = __commonJS({
         const lowercaseName = isLowerCase ? name : name.toLowerCase();
         const exists2 = this[kHeadersMap].get(lowercaseName);
         if (exists2) {
-          const delimiter2 = lowercaseName === "cookie" ? "; " : ", ";
+          const delimiter = lowercaseName === "cookie" ? "; " : ", ";
           this[kHeadersMap].set(lowercaseName, {
             name: exists2.name,
-            value: `${exists2.value}${delimiter2}${value}`
+            value: `${exists2.value}${delimiter}${value}`
           });
         } else {
           this[kHeadersMap].set(lowercaseName, { name, value });
@@ -16135,9 +16135,9 @@ var require_util6 = __commonJS({
         }
       }
     }
-    function validateCookiePath(path3) {
-      for (let i = 0; i < path3.length; ++i) {
-        const code = path3.charCodeAt(i);
+    function validateCookiePath(path) {
+      for (let i = 0; i < path.length; ++i) {
+        const code = path.charCodeAt(i);
         if (code < 32 || // exclude CTLs (0-31)
         code > 126 || // exclude DEL and non-ascii
         code === 59) {
@@ -17066,13 +17066,13 @@ var require_frame = __commonJS({
     "use strict";
     var { maxUnsigned16Bit } = require_constants5();
     var BUFFER_SIZE = 16386;
-    var crypto2;
+    var crypto;
     var buffer = null;
     var bufIdx = BUFFER_SIZE;
     try {
-      crypto2 = require("node:crypto");
+      crypto = require("node:crypto");
     } catch {
-      crypto2 = {
+      crypto = {
         // not full compatibility, but minimum.
         randomFillSync: function randomFillSync(buffer2, _offset, _size) {
           for (let i = 0; i < buffer2.length; ++i) {
@@ -17085,7 +17085,7 @@ var require_frame = __commonJS({
     function generateMask() {
       if (bufIdx === BUFFER_SIZE) {
         bufIdx = 0;
-        crypto2.randomFillSync(buffer ??= Buffer.allocUnsafe(BUFFER_SIZE), 0, BUFFER_SIZE);
+        crypto.randomFillSync(buffer ??= Buffer.allocUnsafe(BUFFER_SIZE), 0, BUFFER_SIZE);
       }
       return [buffer[bufIdx++], buffer[bufIdx++], buffer[bufIdx++], buffer[bufIdx++]];
     }
@@ -17157,9 +17157,9 @@ var require_connection = __commonJS({
     var { Headers: Headers2, getHeadersList } = require_headers();
     var { getDecodeSplit } = require_util2();
     var { WebsocketFrameSend } = require_frame();
-    var crypto2;
+    var crypto;
     try {
-      crypto2 = require("node:crypto");
+      crypto = require("node:crypto");
     } catch {
     }
     function establishWebSocketConnection(url, protocols, client, ws, onEstablish, options) {
@@ -17179,7 +17179,7 @@ var require_connection = __commonJS({
         const headersList = getHeadersList(new Headers2(options.headers));
         request.headersList = headersList;
       }
-      const keyValue = crypto2.randomBytes(16).toString("base64");
+      const keyValue = crypto.randomBytes(16).toString("base64");
       request.headersList.append("sec-websocket-key", keyValue);
       request.headersList.append("sec-websocket-version", "13");
       for (const protocol of protocols) {
@@ -17209,7 +17209,7 @@ var require_connection = __commonJS({
             return;
           }
           const secWSAccept = response.headersList.get("Sec-WebSocket-Accept");
-          const digest = crypto2.createHash("sha1").update(keyValue + uid).digest("base64");
+          const digest = crypto.createHash("sha1").update(keyValue + uid).digest("base64");
           if (secWSAccept !== digest) {
             failWebsocketConnection(ws, "Incorrect hash received in Sec-WebSocket-Accept header.");
             return;
@@ -18979,11 +18979,11 @@ var require_undici = __commonJS({
           if (typeof opts.path !== "string") {
             throw new InvalidArgumentError("invalid opts.path");
           }
-          let path3 = opts.path;
+          let path = opts.path;
           if (!opts.path.startsWith("/")) {
-            path3 = `/${path3}`;
+            path = `/${path}`;
           }
-          url = new URL(util.parseOrigin(url).origin + path3);
+          url = new URL(util.parseOrigin(url).origin + path);
         } else {
           if (!opts) {
             opts = typeof url === "object" ? url : {};
@@ -19125,37 +19125,8 @@ function escapeProperty(s) {
   return toCommandValue(s).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A").replace(/:/g, "%3A").replace(/,/g, "%2C");
 }
 
-// node_modules/.pnpm/@actions+core@3.0.0/node_modules/@actions/core/lib/file-command.js
-var crypto = __toESM(require("crypto"), 1);
-var fs = __toESM(require("fs"), 1);
-var os2 = __toESM(require("os"), 1);
-function issueFileCommand(command, message) {
-  const filePath = process.env[`GITHUB_${command}`];
-  if (!filePath) {
-    throw new Error(`Unable to find environment variable for file command ${command}`);
-  }
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Missing file at path: ${filePath}`);
-  }
-  fs.appendFileSync(filePath, `${toCommandValue(message)}${os2.EOL}`, {
-    encoding: "utf8"
-  });
-}
-function prepareKeyValueMessage(key, value) {
-  const delimiter2 = `ghadelimiter_${crypto.randomUUID()}`;
-  const convertedValue = toCommandValue(value);
-  if (key.includes(delimiter2)) {
-    throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter2}"`);
-  }
-  if (convertedValue.includes(delimiter2)) {
-    throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter2}"`);
-  }
-  return `${key}<<${delimiter2}${os2.EOL}${convertedValue}${os2.EOL}${delimiter2}`;
-}
-
 // node_modules/.pnpm/@actions+core@3.0.0/node_modules/@actions/core/lib/core.js
-var os4 = __toESM(require("os"), 1);
-var path = __toESM(require("path"), 1);
+var os3 = __toESM(require("os"), 1);
 
 // node_modules/.pnpm/@actions+http-client@4.0.1/node_modules/@actions/http-client/lib/index.js
 var tunnel = __toESM(require_tunnel2(), 1);
@@ -19500,10 +19471,10 @@ var _summary = new Summary();
 var import_os2 = __toESM(require("os"), 1);
 
 // node_modules/.pnpm/@actions+io@3.0.2/node_modules/@actions/io/lib/io-util.js
-var fs2 = __toESM(require("fs"), 1);
-var { chmod, copyFile, lstat, mkdir, open, readdir, rename, rm, rmdir, stat, symlink, unlink } = fs2.promises;
+var fs = __toESM(require("fs"), 1);
+var { chmod, copyFile, lstat, mkdir, open, readdir, rename, rm, rmdir, stat, symlink, unlink } = fs.promises;
 var IS_WINDOWS = process.platform === "win32";
-var READONLY = fs2.constants.O_RDONLY;
+var READONLY = fs.constants.O_RDONLY;
 
 // node_modules/.pnpm/@actions+exec@3.0.0/node_modules/@actions/exec/lib/toolrunner.js
 var IS_WINDOWS2 = process.platform === "win32";
@@ -19518,45 +19489,6 @@ var ExitCode;
   ExitCode2[ExitCode2["Success"] = 0] = "Success";
   ExitCode2[ExitCode2["Failure"] = 1] = "Failure";
 })(ExitCode || (ExitCode = {}));
-function exportVariable(name, val) {
-  const convertedVal = toCommandValue(val);
-  process.env[name] = convertedVal;
-  const filePath = process.env["GITHUB_ENV"] || "";
-  if (filePath) {
-    return issueFileCommand("ENV", prepareKeyValueMessage(name, val));
-  }
-  issueCommand("set-env", { name }, convertedVal);
-}
-function addPath(inputPath) {
-  const filePath = process.env["GITHUB_PATH"] || "";
-  if (filePath) {
-    issueFileCommand("PATH", inputPath);
-  } else {
-    issueCommand("add-path", {}, inputPath);
-  }
-  process.env["PATH"] = `${inputPath}${path.delimiter}${process.env["PATH"]}`;
-}
-function getInput(name, options) {
-  const val = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
-  if (options && options.required && !val) {
-    throw new Error(`Input required and not supplied: ${name}`);
-  }
-  if (options && options.trimWhitespace === false) {
-    return val;
-  }
-  return val.trim();
-}
-function getBooleanInput(name, options) {
-  const trueValue = ["true", "True", "TRUE"];
-  const falseValue = ["false", "False", "FALSE"];
-  const val = getInput(name, options);
-  if (trueValue.includes(val))
-    return true;
-  if (falseValue.includes(val))
-    return false;
-  throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}
-Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
-}
 function warning(message, properties = {}) {
   issueCommand("warning", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
@@ -19564,49 +19496,25 @@ function notice(message, properties = {}) {
   issueCommand("notice", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 function info(message) {
-  process.stdout.write(message + os4.EOL);
+  process.stdout.write(message + os3.EOL);
 }
 
 // src/index.ts
-var fs3 = __toESM(require("node:fs"));
-var path2 = __toESM(require("node:path"));
-
-// src/xcodeargs.ts
-function remoteServicePath(xcconfig) {
-  const match = xcconfig.match(/^\s*COMPILATION_CACHE_REMOTE_SERVICE_PATH\s*=\s*(.+?)\s*$/m);
-  return match?.[1];
-}
-
-// src/index.ts
+var fs2 = __toESM(require("node:fs"));
 async function run() {
-  const swift = getBooleanInput("swift");
-  const debug2 = getBooleanInput("debug");
   if (process.platform !== "darwin") {
-    notice("The Xcode compilation cache is only available on macOS: xcodebuild runs unchanged");
+    notice("The Xcode compilation cache is only available on macOS: there is no cache summary");
     return;
   }
   const depotXcconfig = process.env.DEPOT_XCODE_CACHE_XCCONFIG;
-  if (!depotXcconfig || !fs3.existsSync(depotXcconfig)) {
-    notice("The Xcode compilation cache is not available on this runner: xcodebuild runs unchanged");
+  if (!depotXcconfig || !fs2.existsSync(depotXcconfig)) {
+    notice("The Xcode compilation cache is not available on this runner: there is no cache summary");
     return;
   }
-  const socket = remoteServicePath(fs3.readFileSync(depotXcconfig, "utf8"));
-  if (debug2) info(`Depot xcconfig: ${depotXcconfig}, cache socket: ${socket}`);
-  const binDir = path2.join(process.env.RUNNER_TEMP || "/tmp", "depot-xcode-cache", "bin");
-  const shim = path2.join(__dirname, "shim.js");
-  fs3.mkdirSync(binDir, { recursive: true });
-  fs3.writeFileSync(path2.join(binDir, "xcodebuild"), `#!/bin/sh
-exec "${process.execPath}" "${shim}" "$@"
-`, {
-    mode: 493
-  });
-  addPath(binDir);
-  exportVariable("DEPOT_XCODE_CACHE_SWIFT", swift ? "true" : "false");
-  exportVariable("DEPOT_XCODE_CACHE_DEBUG", debug2 ? "true" : "false");
-  info(`xcodebuild now uses the Depot Xcode compilation cache${swift ? "" : " for C, C++ and Objective-C"}`);
+  info("The Xcode compilation cache summary is written at the end of the job");
 }
 run().catch((err) => {
-  warning(`Unable to set up the Xcode compilation cache: ${err instanceof Error ? err.message : err}`);
+  warning(`Unable to set up the Xcode compilation cache summary: ${err instanceof Error ? err.message : err}`);
 });
 /*! Bundled license information:
 

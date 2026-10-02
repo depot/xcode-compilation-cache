@@ -53,3 +53,14 @@ export function summaryRows(stats: Stats): [string, string][] {
   if (stats.upload_failures > 0) rows.push(['Failed uploads', `${stats.upload_failures}`])
   return rows
 }
+
+/** Returns the socket the cache listens on, as named in Depot's xcconfig. */
+export function remoteServicePath(xcconfig: string): string | undefined {
+  // Newer runner agents only point COMPILATION_CACHE_REMOTE_SERVICE_PATH at
+  // the socket while the cache is enabled, through a setting that names it.
+  for (const name of ['DEPOT_XCODE_CACHE_SERVICE_PATH_YES', 'COMPILATION_CACHE_REMOTE_SERVICE_PATH']) {
+    const value = xcconfig.match(new RegExp(`^\\s*${name}\\s*=\\s*(.+?)\\s*$`, 'm'))?.[1]
+    if (value && !value.includes('$(')) return value
+  }
+  return undefined
+}

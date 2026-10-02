@@ -2,8 +2,7 @@ import * as core from '@actions/core'
 import * as fs from 'node:fs'
 import * as http2 from 'node:http2'
 import * as net from 'node:net'
-import {summaryRows, type Stats} from './stats.ts'
-import {remoteServicePath} from './xcodeargs.ts'
+import {remoteServicePath, summaryRows, type Stats} from './stats.ts'
 
 // Served by Depot's runner agent on the cache socket. The counters cover the
 // whole job.
@@ -64,7 +63,9 @@ async function run() {
   if (debug) core.info(`Xcode compilation cache stats: ${JSON.stringify(stats)}`)
 
   if (stats.key_hits + stats.key_misses + stats.key_errors === 0) {
-    core.info('Depot Xcode compilation cache: no compilations used the cache')
+    core.info(
+      'Depot Xcode compilation cache: no compilations used the cache. Set DEPOT_XCODE_CACHE_ENABLED to enable it',
+    )
     return
   }
 
@@ -79,7 +80,7 @@ async function run() {
     for (const e of errors) core.info(`${e.operation} ${e.key}: ${e.error}`)
     core.endGroup()
   }
-  // Keys only name files in the build log's remarks, which debug enables.
+  // Keys only name files in the build log's remarks, which the build enables.
   const missed = stats.missed_keys ?? []
   if (debug) {
     if (missed.length > 0) {
@@ -88,7 +89,9 @@ async function run() {
       core.endGroup()
     }
   } else if (stats.key_misses > 0) {
-    core.info('Set the debug input to list the missed keys and log the file each belongs to')
+    core.info(
+      'Set the debug input to list the missed keys, and build with COMPILATION_CACHE_ENABLE_DIAGNOSTIC_REMARKS=YES to log the file each belongs to',
+    )
   }
 
   await core.summary
