@@ -19560,11 +19560,12 @@ function summaryRows(stats) {
   if (stats.upload_failures > 0) rows.push(["Failed uploads", `${stats.upload_failures}`]);
   return rows;
 }
-
-// src/xcodeargs.ts
 function remoteServicePath(xcconfig) {
-  const match = xcconfig.match(/^\s*COMPILATION_CACHE_REMOTE_SERVICE_PATH\s*=\s*(.+?)\s*$/m);
-  return match?.[1];
+  for (const name of ["DEPOT_XCODE_CACHE_SERVICE_PATH_YES", "COMPILATION_CACHE_REMOTE_SERVICE_PATH"]) {
+    const value = xcconfig.match(new RegExp(`^\\s*${name}\\s*=\\s*(.+?)\\s*$`, "m"))?.[1];
+    if (value && !value.includes("$(")) return value;
+  }
+  return void 0;
 }
 
 // src/post.ts
@@ -19617,7 +19618,7 @@ async function run() {
   }
   if (debug2) info(`Xcode compilation cache stats: ${JSON.stringify(stats)}`);
   if (stats.key_hits + stats.key_misses + stats.key_errors === 0) {
-    info("Depot Xcode compilation cache: no compilations used the cache");
+    info("Depot Xcode compilation cache: no compilations used the cache. Set DEPOT_XCODE_CACHE_ENABLED to enable it");
     return;
   }
   const rows = summaryRows(stats);
@@ -19638,7 +19639,9 @@ async function run() {
       endGroup();
     }
   } else if (stats.key_misses > 0) {
-    info("Set the debug input to list the missed keys and log the file each belongs to");
+    info(
+      "Set the debug input to list the missed keys, and build with COMPILATION_CACHE_ENABLE_DIAGNOSTIC_REMARKS=YES to log the file each belongs to"
+    );
   }
   await summary.addHeading("Depot Xcode compilation cache", 3).addTable(rows.map(([label, value]) => [label, value])).write();
 }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import {test} from 'node:test'
-import {formatBytes, hitRate, summaryRows, type Stats} from './stats.ts'
+import {formatBytes, hitRate, remoteServicePath, summaryRows, type Stats} from './stats.ts'
 
 const empty: Stats = {
   key_hits: 0,
@@ -44,4 +44,20 @@ test('summaryRows only reports problems when there are some', () => {
       ['Failed uploads', '3'],
     ],
   )
+})
+
+test('remoteServicePath', () => {
+  assert.equal(
+    remoteServicePath(
+      'DEPOT_XCODE_CACHE_SERVICE_PATH_YES = /var/run/depot-xcode-cache.sock\nCOMPILATION_CACHE_REMOTE_SERVICE_PATH = $(DEPOT_XCODE_CACHE_SERVICE_PATH_$(DEPOT_XCODE_CACHE_ON))\n',
+    ),
+    '/var/run/depot-xcode-cache.sock',
+  )
+  assert.equal(
+    remoteServicePath('COMPILATION_CACHE_REMOTE_SERVICE_PATH = /var/run/depot-xcode-cache.sock\n'),
+    '/var/run/depot-xcode-cache.sock',
+    'older runner agents set the path directly',
+  )
+  assert.equal(remoteServicePath('COMPILATION_CACHE_REMOTE_SERVICE_PATH = $(SOMETHING)\n'), undefined)
+  assert.equal(remoteServicePath(''), undefined)
 })
